@@ -147,6 +147,8 @@ const (
 	ErrInvalidLc
 	ErrNoSuchBucketLc
 	ErrInvalidStorageClass
+	ErrInvalidWebsiteConfiguration
+	ErrMalformedWebsiteConfiguration
 )
 
 // error code to APIError structure, these fields carry respective
@@ -652,6 +654,16 @@ var ErrorCodeResponse = map[ApiErrorCode]ApiErrorStruct{
 		AwsErrorCode:   "InvalidStorageClass",
 		Description:    "The storage class you specified in header is invalid.",
 		HttpStatusCode: http.StatusBadRequest,
+	},
+	ErrInvalidWebsiteConfiguration: {
+		AwsErrorCode:   "InvalidWebsiteConfiguration",
+		Description:    "The XML of website configuration in the request is invalid.",
+		HttpStatusCode: http.StatusConflict,
+	},
+	ErrMalformedWebsiteConfiguration: {
+		AwsErrorCode:   "MalformedWebsiteConfiguration",
+		Description:    "Cannot Marshal/Unmarshal XML of website configuration.",
+		HttpStatusCode: http.StatusConflict,
 	},
 }
 
