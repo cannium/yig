@@ -61,7 +61,6 @@ func setGetRespHeaders(w http.ResponseWriter, reqParams url.Values) {
 func getStorageClassFromHeader(r *http.Request) (meta.StorageClass, error) {
 	storageClassStr := r.Header.Get("X-Amz-Storage-Class")
 
-
 	if storageClassStr != "" {
 		helper.Logger.Println(20, "Get storage class header:", storageClassStr)
 		return meta.MatchStorageClassIndex(storageClassStr)
@@ -149,7 +148,7 @@ func (api ObjectAPIHandlers) GetObjectHandler(w http.ResponseWriter, r *http.Req
 
 	version := r.URL.Query().Get("versionId")
 	// Fetch object stat info.
-	object, err := api.ObjectAPI.GetObjectInfo(bucketName, objectName, version, credential)
+	object, err := api.ObjectAPI.GetObjectInfoByCtx(getRequestContext(r), version, credential)
 	if err != nil {
 		helper.ErrorIf(err, "Unable to fetch object info.")
 		if err == ErrNoSuchKey {
@@ -299,7 +298,7 @@ func (api ObjectAPIHandlers) HeadObjectHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	version := r.URL.Query().Get("versionId")
-	object, err := api.ObjectAPI.GetObjectInfo(bucketName, objectName, version, credential)
+	object, err := api.ObjectAPI.GetObjectInfoByCtx(getRequestContext(r), version, credential)
 	if err != nil {
 		helper.ErrorIf(err, "Unable to fetch object info.")
 		if err == ErrNoSuchKey {
@@ -885,7 +884,7 @@ func (api ObjectAPIHandlers) AppendObjectHandler(w http.ResponseWriter, r *http.
 
 	// Check whether the object is exist or not
 	// Check whether the bucket is owned by the specified user
-	objInfo, err := api.ObjectAPI.GetObjectInfo(bucketName, objectName, "", credential)
+	objInfo, err := api.ObjectAPI.GetObjectInfoByCtx(getRequestContext(r), "", credential)
 	if err != nil && err != ErrNoSuchKey {
 		WriteErrorResponse(w, r, err)
 		return
@@ -1692,7 +1691,6 @@ func (api ObjectAPIHandlers) DeleteObjectHandler(w http.ResponseWriter, r *http.
 // signature policy in multipart/form-data
 
 var ValidSuccessActionStatus = []string{"200", "201", "204"}
-
 
 func (api ObjectAPIHandlers) PostObjectHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
