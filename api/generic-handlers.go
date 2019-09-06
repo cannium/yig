@@ -193,7 +193,7 @@ func (h GenerateContextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	var objectInfo *types.Object
 	var err error
 	requestId := string(helper.GenerateRandomId())
-	bucketName, objectName := GetBucketAndObjectInfoFromRequest(r)
+	bucketName, objectName, isBucketDomain := GetBucketAndObjectInfoFromRequest(r)
 
 	if bucketName != "" {
 		bucketInfo, err = h.meta.GetBucket(bucketName, true)
@@ -220,12 +220,13 @@ func (h GenerateContextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		r.Context(),
 		RequestContextKey,
 		&RequestContext{
-			RequestId:  requestId,
-			BucketName: bucketName,
-			ObjectName: objectName,
-			BucketInfo: bucketInfo,
-			ObjectInfo: objectInfo,
-			AuthType:   authType,
+			RequestId:      requestId,
+			BucketName:     bucketName,
+			ObjectName:     objectName,
+			BucketInfo:     bucketInfo,
+			ObjectInfo:     objectInfo,
+			AuthType:       authType,
+			IsBucketDomain: isBucketDomain,
 		})
 	helper.Logger.Printf(20, "RequestId: %s, BucketName: %s, ObjectName: %s, BucketInfo: %s, ObjectInfo: %s, AuthType: %d",
 		requestId, bucketName, objectName, bucketInfo, objectInfo, authType)
@@ -252,12 +253,12 @@ func InReservedOrigins(origin string) bool {
 
 //// helpers
 
-func GetBucketAndObjectInfoFromRequest(r *http.Request) (bucketName string, objectName string) {
+func GetBucketAndObjectInfoFromRequest(r *http.Request) (bucketName string, objectName string, isBucketDomain bool) {
 	splits := strings.SplitN(r.URL.Path[1:], "/", 2)
 	v := strings.Split(r.Host, ":")
 	hostWithOutPort := v[0]
-	ok, bucketName := helper.HasBucketInDomain(hostWithOutPort, ".", helper.CONFIG.S3Domain)
-	if ok {
+	isBucketDomain, bucketName = helper.HasBucketInDomain(hostWithOutPort, ".", helper.CONFIG.S3Domain)
+	if isBucketDomain {
 		if len(splits) == 1 {
 			objectName = splits[0]
 		}
